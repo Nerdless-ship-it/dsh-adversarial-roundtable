@@ -1,5 +1,8 @@
 # dsh-adversarial-roundtable — 多模型圆桌会议编排（DeepSeek Harness 常驻插件）
 
+[![CI](https://github.com/Nerdless-ship-it/dsh-adversarial-roundtable/actions/workflows/ci.yml/badge.svg)](https://github.com/Nerdless-ship-it/dsh-adversarial-roundtable/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 为 DeepSeek Harness 提供 `roundtable_models` 与 `roundtable` 两个工具，让多个接入模型按席位协作：
 **先向用户确认阵容** → 规划者起草计划 → 独立审核者批判审核 → 讨论执行细节 → 执行者真实执行 → 独立验收者核对产物。
 
