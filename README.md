@@ -125,6 +125,17 @@ npm test
 钉在 `0.1.5-rc.2`（真机验证所用版本）：npm 上这几个包的 `latest` 标签指向过期的 `0.0.1-rc.1`，
 裸装 `latest` 会解析到错误版本，所以显式钉版本并提交 lockfile，`npm ci` 可完全复现。
 
+## 调试
+
+插件有一个内置调试开关：设 `ROUNDTABLE_DEBUG=1` 后，编排过程中的内部进度会以
+`[roundtable:debug]` 前缀写到 **stderr**（例如阵容候选生成、席位轮次与降级分支的判定依据）。
+默认关闭；它只往 stderr 写日志，不改变返回值、不改写纪要、不额外调用模型。
+
+```bash
+ROUNDTABLE_DEBUG=1 dsh web        # 类 Unix
+$env:ROUNDTABLE_DEBUG=1; dsh web  # Windows PowerShell
+```
+
 ## 安装（推荐：GitHub git 依赖）
 
 每台机器只需做一次：
