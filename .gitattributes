@@ -1,0 +1,5 @@
+# 统一 LF：install.sh 若被检出为 CRLF，在类 Unix 上会直接报 `bash: $'\r': command not found`
+* text=auto eol=lf
+
+# GitHub 语言统计
+* linguist-vendored=false

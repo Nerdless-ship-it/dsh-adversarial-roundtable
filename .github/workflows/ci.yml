@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', 'lts/*']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  windows:
+    name: windows (npm test + install.ps1 on PowerShell 5.1)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+      # install.ps1 含中文，必须以 UTF-8 BOM 保存，否则 PowerShell 5.1 会按 ANSI 解码。
+      - name: install.ps1 必须带 UTF-8 BOM
+        shell: pwsh
+        run: |
+          $bytes = [System.IO.File]::ReadAllBytes("$PWD/install.ps1")
+          $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+          if (-not $hasBom) { throw 'install.ps1 is missing the UTF-8 BOM required by Windows PowerShell 5.1' }
+          Write-Host 'install.ps1 has UTF-8 BOM'
+
+      # 在英文 locale 的 runner 上用 Windows PowerShell 5.1 真跑，验证安装 + 幂等。
+      # 以下内联脚本刻意只用 ASCII：内联块本身没有 BOM，中文会被 5.1 按 ANSI 解码而解析失败。
+      - name: install.ps1 冒烟 + 幂等（Windows PowerShell 5.1）
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:DSH_HOME = Join-Path $env:RUNNER_TEMP 'dshhome'
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'first install.ps1 run failed' }
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'second install.ps1 run (idempotency) failed' }
+          $patch = Join-Path $env:DSH_HOME 'cordis.patch.yml'
+          $count = @(Select-String -LiteralPath $patch -SimpleMatch 'roundtable plugin:start').Count
+          if ($count -ne 1) { throw "expected exactly 1 patch block, got $count" }
+          if (-not (Select-String -LiteralPath $patch -SimpleMatch 'dsh-adversarial-roundtable' -Quiet)) { throw 'package name missing from patch file' }
+          $store = Join-Path $env:DSH_HOME 'profiles\node_modules\dsh-adversarial-roundtable'
+          if (-not (Test-Path -LiteralPath (Join-Path $store 'index.mjs'))) { throw "store not populated: $store" }
+          if (Test-Path -LiteralPath (Join-Path $store 'node_modules')) { throw 'node_modules leaked into the store copy' }
+          Write-Host 'install.ps1 smoke passed'
+
+  installers:
+    name: linux (install.sh smoke + idempotency)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # 同样只用 ASCII，理由同上（保持两个安装脚本的 CI 步骤风格一致）
+      - name: install.sh 冒烟 + 幂等
+        run: |
+          set -euo pipefail
+          export DSH_HOME="$RUNNER_TEMP/dshhome"
+          bash -n install.sh
+          bash install.sh --profile web
+          bash install.sh --profile web
+          count="$(grep -c 'roundtable plugin:start' "$DSH_HOME/cordis.patch.yml")"
+          if [ "$count" != "1" ]; then echo "expected exactly 1 patch block, got $count"; exit 1; fi
+          grep -q 'dsh-adversarial-roundtable' "$DSH_HOME/cordis.patch.yml"
+          store="$DSH_HOME/profiles/node_modules/dsh-adversarial-roundtable"
+          test -f "$store/index.mjs"
+          test ! -e "$store/node_modules"
+          echo 'install.sh smoke passed'

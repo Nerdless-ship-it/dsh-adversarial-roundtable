@@ -1,0 +1,63 @@
+{
+  "name": "dsh-adversarial-roundtable",
+  "version": "0.5.0",
+  "type": "module",
+  "description": "多模型圆桌会议编排：规划者/审核者/执行者/验收者四席协作，代码主持人仲裁；开会前先向用户确认阵容。",
+  "license": "Apache-2.0",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "roundtable",
+    "multi-model",
+    "multi-agent",
+    "adversarial-review"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nerdless-ship-it/dsh-adversarial-roundtable.git"
+  },
+  "homepage": "https://github.com/Nerdless-ship-it/dsh-adversarial-roundtable#readme",
+  "bugs": {
+    "url": "https://github.com/Nerdless-ship-it/dsh-adversarial-roundtable/issues"
+  },
+  "scripts": {
+    "test": "node test-internals.mjs && node test-flow.mjs"
+  },
+  "exports": {
+    ".": "./index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.mjs",
+    "install.sh",
+    "install.ps1",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-llm": ">=0.1.5-rc.2",
+    "@deepseek-ai/dsh-subagent": ">=0.1.5-rc.2",
+    "@deepseek-ai/dsh-tools": ">=0.1.5-rc.2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-llm": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-subagent": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-llm": "0.1.5-rc.2",
+    "@deepseek-ai/dsh-subagent": "0.1.5-rc.2",
+    "@deepseek-ai/dsh-tools": "0.1.5-rc.2"
+  }
+}
